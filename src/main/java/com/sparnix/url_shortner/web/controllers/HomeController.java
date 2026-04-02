@@ -1,6 +1,6 @@
 package com.sparnix.url_shortner.web.controllers;
 
-import com.sparnix.url_shortner.domain.entities.ShortUrl;
+import com.sparnix.url_shortner.domain.models.ShortUrlDto;
 import com.sparnix.url_shortner.domain.services.ShortUrlService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +18,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model) {
-        List<ShortUrl> shortUrls = shortUrlService.findAllPublicShortUrls();
+        List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
         model.addAttribute("shortUrls", shortUrls);
         model.addAttribute("baseUrl", "http://localhost:8080");
         return "index";
