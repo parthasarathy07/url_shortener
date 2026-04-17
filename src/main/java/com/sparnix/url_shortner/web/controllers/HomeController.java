@@ -1,5 +1,6 @@
 package com.sparnix.url_shortner.web.controllers;
 
+import com.sparnix.url_shortner.domain.exceptions.ShortUrlNotFoundException;
 import com.sparnix.url_shortner.domain.models.ShortUrlDto;
 import com.sparnix.url_shortner.domain.services.ShortUrlService;
 import com.sparnix.url_shortner.web.dtos.CreateShortUrlForm;
@@ -11,10 +12,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.sparnix.url_shortner.ApplicationProperties;
 import com.sparnix.url_shortner.domain.models.*;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class HomeController {
@@ -57,6 +60,16 @@ public class HomeController {
 
         }
         return "redirect:/";
+    }
+
+    @GetMapping("/s/{shortKey}")
+    String redirectToOriginalUrl(@PathVariable String shortKey) {
+        Optional<ShortUrlDto> shortUrlDtoOptional = shortUrlService.accessShortUrl(shortKey);
+        if(shortUrlDtoOptional.isEmpty()) {
+            throw new ShortUrlNotFoundException("Invalid short key: "+shortKey);
+        }
+        ShortUrlDto shortUrlDto = shortUrlDtoOptional.get();
+        return "redirect:"+shortUrlDto.originalUrl();
     }
 
 }
