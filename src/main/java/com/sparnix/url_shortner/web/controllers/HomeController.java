@@ -1,5 +1,6 @@
 package com.sparnix.url_shortner.web.controllers;
 
+import com.sparnix.url_shortner.domain.entities.User;
 import com.sparnix.url_shortner.domain.exceptions.ShortUrlNotFoundException;
 import com.sparnix.url_shortner.domain.models.ShortUrlDto;
 import com.sparnix.url_shortner.domain.services.ShortUrlService;
@@ -23,14 +24,18 @@ import java.util.Optional;
 public class HomeController {
     private final ShortUrlService shortUrlService;
     private final ApplicationProperties properties;
+    private final SecurityUtils securityUtils;
 
-    public HomeController(ShortUrlService shortUrlService, ApplicationProperties properties) {
+    public HomeController(ShortUrlService shortUrlService, ApplicationProperties properties, SecurityUtils securityUtils) {
         this.shortUrlService = shortUrlService;
         this.properties = properties;
+        this.securityUtils = securityUtils;
     }
 
     @GetMapping("/")
     public String home(Model model) {
+        User currentUser = securityUtils.getCurrentUser();
+
         List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
         model.addAttribute("shortUrls", shortUrls);
         model.addAttribute("baseUrl", properties.baseUrl());
