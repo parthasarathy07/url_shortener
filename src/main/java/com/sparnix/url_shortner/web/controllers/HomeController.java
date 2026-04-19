@@ -6,15 +6,16 @@ import com.sparnix.url_shortner.domain.models.ShortUrlDto;
 import com.sparnix.url_shortner.domain.services.ShortUrlService;
 import com.sparnix.url_shortner.web.dtos.CreateShortUrlForm;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import com.sparnix.url_shortner.ApplicationProperties;
 import com.sparnix.url_shortner.domain.models.*;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -26,21 +27,32 @@ public class HomeController {
     private final ApplicationProperties properties;
     private final SecurityUtils securityUtils;
 
-    public HomeController(ShortUrlService shortUrlService, ApplicationProperties properties, SecurityUtils securityUtils) {
+    public HomeController(ShortUrlService shortUrlService,
+                          ApplicationProperties properties,
+                          SecurityUtils securityUtils) {
         this.shortUrlService = shortUrlService;
         this.properties = properties;
         this.securityUtils = securityUtils;
     }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(
+            @RequestParam(defaultValue = "1") Integer page,
+            Model model
+//           @PageableDefault(size = 10,page = 0,sort = "createdAt",direction = Sort.Direction.DESC)
+//           Pageable pageable
+    ) {
 
-        List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
-        model.addAttribute("shortUrls", shortUrls);
-        model.addAttribute("baseUrl", properties.baseUrl());
+        this.addShortUrlsDataToModel(model, page);
         model.addAttribute("createShortUrlForm",
                 new CreateShortUrlForm("", false, null));
         return "index";
+    }
+
+    private void addShortUrlsDataToModel(Model model, int pageNo) {
+        PagedResult<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls(pageNo, properties.pageSize());
+        model.addAttribute("shortUrls", shortUrls);
+        model.addAttribute("baseUrl", properties.baseUrl());
     }
 
     @PostMapping("/short-urls")
@@ -49,9 +61,7 @@ public class HomeController {
                           RedirectAttributes redirectAttributes,
                           Model model) {
         if(bindingResult.hasErrors()) {
-            List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
-            model.addAttribute("shortUrls", shortUrls);
-            model.addAttribute("baseUrl", properties.baseUrl());
+            this.addShortUrlsDataToModel(model, 1);
             return "index";
         }
 
