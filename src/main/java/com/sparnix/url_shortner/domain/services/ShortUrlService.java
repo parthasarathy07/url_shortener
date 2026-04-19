@@ -61,6 +61,12 @@ public class ShortUrlService {
         }
     }
 
+    public PagedResult<ShortUrlDto> findAllShortUrls(int page, int pageSize) {
+        Pageable pageable = getPageable(page, pageSize);
+        var shortUrlsPage =  shortUrlRepository.findAllShortUrls(pageable).map(entityMapper::toShortUrlDto);
+        return PagedResult.from(shortUrlsPage);
+    }
+
     private Pageable getPageable(int page, int size) {
         page = page > 1 ? page - 1: 0;
         return PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
